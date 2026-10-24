@@ -126,15 +126,19 @@ harness.
 
 | Topic | File |
 | --- | --- |
+| Project website (source in [`site/`](site/), deployed by GitHub Pages) | [`site/index.html`](site/index.html) |
 | Using Pagelens end to end | [`docs/user-guide.md`](docs/user-guide.md) |
 | Every command and option, and how to launch them (pip, Nix) | [`docs/cli-reference.md`](docs/cli-reference.md) |
 | Design and boundaries | [`docs/architecture.md`](docs/architecture.md) |
 | Model choices and privacy | [`docs/model-selection.md`](docs/model-selection.md) |
-| Known limits and roadmap | [`docs/limitations-and-roadmap.md`](docs/limitations-and-roadmap.md) |
+| Known limits | [`docs/limitations-and-roadmap.md`](docs/limitations-and-roadmap.md) |
+| Roadmap and help wanted | [`ROADMAP.md`](ROADMAP.md) |
+| How changes are made (idea → release) | [`docs/EVOLVING.md`](docs/EVOLVING.md) |
+| Design decisions (ADRs) | [`docs/adr/`](docs/adr/README.md) |
 | Behavioural requirements | [`openspec/specs/`](openspec/specs/multimodal-pdf-search/spec.md) |
 | Test corpus | [`testdata/README.md`](testdata/README.md) |
 
-## Development
+## Development and contributing
 
 ```bash
 nix run path:.#quality         # Ruff, mypy, pytest + coverage, pinned toolchain
@@ -142,10 +146,19 @@ make quality                   # same checks inside `nix develop path:.` or a uv
 make demo                      # end-to-end run against local Ollama
 ```
 
-Unit tests are deterministic and offline. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Unit tests are deterministic and offline. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the
+workflow, commit convention and code conventions; [`SUPPORT.md`](SUPPORT.md) for getting help;
+[`SECURITY.md`](SECURITY.md) for reporting vulnerabilities; and the
+[code of conduct](CODE_OF_CONDUCT.md).
 
-## Project status
+## Releases
 
-Pre-1.0 (`0.x`). The CLI and SQLite schema may change between minor versions; changes are
-recorded in [`CHANGELOG.md`](CHANGELOG.md) and follow [Semantic Versioning](https://semver.org/).
-Licensed under the [MIT License](LICENSE).
+Pre-1.0 (`0.x`): the CLI and SQLite schema may change between minor versions. Commits follow
+[Conventional Commits](https://www.conventionalcommits.org/); release-please turns them into
+a release pull request with the version bump and [`CHANGELOG.md`](CHANGELOG.md), and merging
+it tags the release and attaches the wheel and source archive. The project follows
+[Semantic Versioning](https://semver.org/).
+
+## Licence
+
+[MIT](LICENSE). Third-party models, libraries and data terms: [`NOTICE.md`](NOTICE.md).
