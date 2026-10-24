@@ -19,11 +19,4 @@ current boundaries.
 
 ## Roadmap
 
-1. **Approximate nearest neighbours** – Qdrant or sqlite-vec adapter behind `RegionStore`.
-2. **Incremental ingestion** – skip unchanged files by content hash; background re-index.
-3. **Stronger verification** – few-shot prompts, calibration set, and a second-opinion pass
-   for `--evidence any`.
-4. **Layout-aware regions** – detect figures and tables instead of fixed tiles.
-5. **Result viewer** – small local web UI showing the page with the bounding box highlighted.
-6. **Learned reranking** – cross-encoder reranker over the top candidates.
-7. **Service mode** – HTTP API for integration, with authentication.
+See [`ROADMAP.md`](../ROADMAP.md).

@@ -2,6 +2,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+from pagelens import __version__
 from pagelens.cli import app
 
 
@@ -21,4 +22,4 @@ def test_init_and_status_do_not_load_models(tmp_path: Path) -> None:
 def test_version() -> None:
     result = CliRunner().invoke(app, ["--version"])
     assert result.exit_code == 0
-    assert "0.1.0" in result.stdout
+    assert __version__ in result.stdout

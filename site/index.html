@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagelens — Find which page shows it</title>
+<meta name="description" content="Pagelens is a local-first multimodal search tool that finds which page of which PDF shows an object. How it works, how to run it, how to extend it, and how Nix builds it.">
+<meta name="theme-color" content="#0e1114">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230e1114'/%3E%3Cpath d='M0 26L26 0h6L0 32z' fill='%23ffc400'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%23ffc400' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="hazard" aria-hidden="true"></div>
+<nav aria-label="Sections">
+  <div class="wrap">
+    <a class="brand" href="#top">Pagelens</a>
+    <a class="link" href="#why">Why</a>
+    <a class="link" href="#line">The line</a>
+    <a class="link" href="#try">Try it</a>
+    <a class="link" href="#qc">Quality</a>
+    <a class="link" href="#extend">Extend</a>
+    <a class="link" href="#nix">Nix</a>
+    <a class="link" href="#limits">Limits</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <span class="tag">Local-first · Multimodal · Grounded</span>
+    <h1>Find which page<br><span>shows it.</span></h1>
+    <p class="lede">Describe an object in words, give a reference photo, or both. Pagelens returns the PDF, the one-based page, the region and a saved preview, even when the page never names the object. Everything runs on your machine.</p>
+    <div class="cta">
+      <a class="btn primary" href="#try">Start the line</a>
+      <a class="btn ghost" href="#extend">Extend it</a>
+      <a class="btn ghost" href="#nix">How Nix builds it</a>
+    </div>
+    <div class="codebox" style="max-width:820px;margin-top:40px">
+      <div class="bar"><span>Real output · bundled demo corpus</span><button type="button">Copy</button></div>
+<pre>$ pagelens query "water pump" --verify --limit 5
+
+ Relevance  PDF                  Page  Result     Evidence
+     0.789  pump-catalog.pdf        2  <span class="o">confirmed</span>  centrifugal water pump · Aquaflow Systems · WP-450 · AF-P-1042
+     0.739  image-only-scan.pdf     1  <span class="o">confirmed</span>  water pump
+     0.717  vehicle-catalog.pdf     2  <span class="o">confirmed</span>  water pump · Utility room arrangement UR-12
+<span class="c">Hidden 2 rejected candidate(s); use --include-rejected to inspect them.</span></pre>
+    </div>
+  </div>
+</header>
+<div class="hazard" aria-hidden="true"></div>
+
+<main>
+<section id="why">
+  <div class="wrap">
+    <div class="station">Station 00 · The problem</div>
+    <h2>Words are not the whole manual</h2>
+    <p>Technical PDFs show their parts: photos, scans, vector drawings, small icons inside large layouts. Keyword search only sees the text layer, so an unlabelled picture of a pump, or a scanned page with no text at all, is invisible to it.</p>
+    <div class="grid">
+      <div class="card bad"><h3>Typical PDF search</h3><p>Matches words. Misses image-only scans. Returns a whole document. A similarity score is treated as the answer.</p></div>
+      <div class="card good"><h3>Pagelens</h3><p>Matches what is <em>depicted</em>. Returns document, page, region and preview. A vision model can confirm or reject each candidate and say which kind of evidence it used.</p></div>
+      <div class="card good"><h3>Private by design</h3><p>PDFs and crops stay local. Models run through Ollama on your hardware. After the first model pull, it works offline.</p></div>
+      <div class="card good"><h3>Measured</h3><p>Ships page-level ground truth and an <code>evaluate</code> command, so every change is scored, including false confirmations.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="line">
+  <div class="wrap">
+    <div class="station">Station 01 · The production line</div>
+    <h2>From PDF to evidence in four stations</h2>
+    <p>Indexing is an assembly line. Each station does one job and hands the part to the next. Every region keeps its provenance: source file, page, bounding box and preview.</p>
+
+    <div class="line" aria-label="Ingestion pipeline">
+      <div class="belt-wrap"><span class="part"></span><span class="part"></span><span class="part"></span><div class="belt"></div></div>
+      <div class="stations">
+        <div class="st"><div class="n">01</div><b>Render</b><span>PyMuPDF rasterises each page at 144 dpi, so vector drawings count too.</span></div>
+        <div class="st"><div class="n">02</div><b>Tile</b><span>Overlapping 768 px regions (128 px overlap). Text blocks that touch a region attach to it. OCR fills in scanned pages if Tesseract exists.</span></div>
+        <div class="st"><div class="n">03</div><b>Embed</b><span>Ollama <code>embeddinggemma-2</code> puts text and images into one 768-d vector space.</span></div>
+        <div class="st"><div class="n">04</div><b>Store</b><span>SQLite keeps normalised vectors, text, provenance and an FTS5 index. Re-ingesting replaces, never duplicates.</span></div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:56px">Then the inspection line</h2>
+    <div class="line" aria-label="Query pipeline">
+      <div class="belt-wrap"><span class="part"></span><span class="part"></span><span class="part"></span><div class="belt"></div></div>
+      <div class="stations">
+        <div class="st"><div class="n">A</div><b>Encode</b><span>Query text and each reference image become separate vectors. Views are kept apart, not averaged.</span></div>
+        <div class="st"><div class="n">B</div><b>Score</b><span>Each region gets its best cosine similarity across query vectors, plus a small boost for exact-text matches.</span></div>
+        <div class="st"><div class="n">C</div><b>Group</b><span>The strongest region per PDF page is kept as that page's evidence.</span></div>
+        <div class="st qc"><div class="n">QC</div><b>Verify (optional)</b><span>Qwen3-VL sees the crop and the full page, then returns confirmed, rejected or uncertain, plus metadata.</span></div>
+      </div>
+    </div>
+
+    <div class="diagram" role="img" aria-label="Diagram: PDFs flow through the extractor, embedder and store; a query flows through the embedder to the store and optionally to the verifier.">
+      <svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="20" width="130" height="50"/><text x="75" y="50" text-anchor="middle">PDF files</text>
+        <rect x="190" y="20" width="150" height="50" class="hot"/><text x="265" y="42" text-anchor="middle">Extractor</text><text x="265" y="58" text-anchor="middle" class="dim">PyMuPDF</text>
+        <rect x="390" y="20" width="150" height="50" class="hot"/><text x="465" y="42" text-anchor="middle">Embedder</text><text x="465" y="58" text-anchor="middle" class="dim">Ollama</text>
+        <rect x="590" y="20" width="150" height="50" class="hot"/><text x="665" y="42" text-anchor="middle">Store</text><text x="665" y="58" text-anchor="middle" class="dim">SQLite + FTS5</text>
+        <path d="M140 45H190M340 45H390M540 45H590"/>
+        <rect x="10" y="170" width="130" height="50"/><text x="75" y="192" text-anchor="middle">Query</text><text x="75" y="208" text-anchor="middle" class="dim">text · images</text>
+        <rect x="390" y="170" width="150" height="50" class="hot"/><text x="465" y="200" text-anchor="middle">Embedder</text>
+        <rect x="590" y="170" width="150" height="50"/><text x="665" y="200" text-anchor="middle">Ranked pages</text>
+        <rect x="770" y="95" width="120" height="60" class="cool"/><text x="830" y="120" text-anchor="middle">Verifier</text><text x="830" y="138" text-anchor="middle" class="dim">Qwen3-VL</text>
+        <path d="M140 195H390M540 195H590M465 170V70M665 70V170M740 195H830V155"/>
+        <text x="478" y="125" class="dim">vectors</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section id="try">
+  <div class="wrap">
+    <div class="station">Station 02 · Commissioning</div>
+    <h2>Fire it up in five minutes</h2>
+    <p>You need Python 3.11–3.13 and <a href="https://ollama.com">Ollama</a> 0.12.7 or newer. <a href="https://github.com/tesseract-ocr/tesseract">Tesseract</a> is optional and only reads text from scanned pages.</p>
+
+    <ol class="steps">
+      <li><strong>Pull the models</strong> (one time, about 7 GB).
+        <div class="codebox"><div class="bar"><span>shell</span><button type="button">Copy</button></div>
+<pre>ollama pull embeddinggemma-2:440m-q8_0-text-vision   <span class="c"># retrieval</span>
+ollama pull qwen3-vl:8b-instruct                      <span class="c"># optional verification</span></pre></div></li>
+      <li><strong>Install</strong> the CLI.
+        <div class="codebox"><div class="bar"><span>shell</span><button type="button">Copy</button></div>
+<pre>pip install -e .      <span class="c"># or: uv sync</span></pre></div></li>
+      <li><strong>Run the demo</strong> on four fictional manuals.
+        <div class="codebox"><div class="bar"><span>shell</span><button type="button">Copy</button></div>
+<pre>scripts/demo.sh --verify</pre></div></li>
+      <li><strong>Point it at your own PDFs.</strong>
+        <div class="codebox"><div class="bar"><span>shell</span><button type="button">Copy</button></div>
+<pre>pagelens init
+pagelens ingest ./manuals
+pagelens query "industrial water pump"
+pagelens query --image ./photo-of-the-part.jpg
+pagelens query "same pump" --image ./photo.jpg --verify
+pagelens query "AF-P-1042" --json</pre></div></li>
+    </ol>
+
+    <div class="warn"><strong>Using Nix? Mind the double dash.</strong> Write <code>nix run path:. -- query "motorcycle" --verify</code>. Without <code>--</code>, Nix reads <code>--verify</code> as its own option and stops with <code>unrecognised flag</code>. Or run <code>nix shell path:.</code> once and call <code>pagelens</code> directly.</div>
+
+    <h3 style="margin-top:36px">Evidence policy</h3>
+    <div class="scroll"><table>
+      <tr><th>Flag</th><th>Meaning</th><th>Use it for</th></tr>
+      <tr><td><code>--evidence visual</code> (default)</td><td>The object must be visibly depicted on the crop or the page.</td><td>"Where is it <em>shown</em>?"</td></tr>
+      <tr><td><code>--evidence any</code></td><td>An explicit text mention also confirms.</td><td>"Where is it <em>mentioned or shown</em>?"</td></tr>
+    </table></div>
+    <p>Category words are literal: <code>pump</code> includes fuel pumps, <code>water pump</code> does not. Scores rank candidates; they are not probabilities.</p>
+
+    <h3>Settings</h3>
+    <div class="scroll"><table>
+      <tr><th>Variable</th><th>Default</th></tr>
+      <tr><td><code>PAGELENS_DATA_DIR</code></td><td><code>.pagelens</code></td></tr>
+      <tr><td><code>PAGELENS_EMBEDDING_MODEL</code></td><td><code>embeddinggemma-2:440m-q8_0-text-vision</code></td></tr>
+      <tr><td><code>PAGELENS_OLLAMA_MODEL</code></td><td><code>qwen3-vl:8b-instruct</code></td></tr>
+      <tr><td><code>PAGELENS_OLLAMA_URL</code></td><td><code>http://127.0.0.1:11434</code></td></tr>
+      <tr><td><code>PAGELENS_RENDER_DPI</code> · <code>_TILE_SIZE</code> · <code>_TILE_OVERLAP</code></td><td><code>144</code> · <code>768</code> · <code>128</code></td></tr>
+    </table></div>
+    <p>Changing the embedding model, dpi or tiling means re-ingesting: vectors from different setups are not comparable.</p>
+  </div>
+</section>
+
+<section id="qc">
+  <div class="wrap">
+    <div class="station">Station 03 · Quality control</div>
+    <h2>Every change gets scored</h2>
+    <p><code>testdata/</code> holds four fictional manuals with page-level ground truth: labelled objects, an image-only scan, a text-only procedure, a vector drawing, a small object in a large layout, and deliberate hard negatives (a fuel pump, a compressor, a radiator).</p>
+    <div class="codebox"><div class="bar"><span>shell</span><button type="button">Copy</button></div>
+<pre>pagelens evaluate testdata/ground-truth.json            <span class="c"># candidate recall</span>
+pagelens evaluate testdata/ground-truth.json --verify   <span class="c"># + false-confirmation checks</span>
+pagelens evaluate testdata/ground-truth.json --scenario motorcycle-visual</pre></div>
+    <div class="codebox"><div class="bar"><span>Output · retrieval run</span><button type="button">Copy</button></div>
+<pre class="out">Scenario                   Evidence  Recall  Result
+water-pumps-visual         visual       3/3  <span class="ok">PASS</span>
+water-pumps-any-evidence   any          4/4  <span class="ok">PASS</span>
+pump-visual-broad          visual       4/4  <span class="ok">PASS</span>
+exact-reference            any          2/2  <span class="ok">PASS</span>
+motorcycle-visual          visual       1/1  <span class="ok">PASS</span>
+compressor                 visual       1/1  <span class="ok">PASS</span></pre></div>
+    <div class="note"><strong>Honest result.</strong> The stricter <code>--verify</code> run currently flags one known failure: with <code>--evidence any</code>, the vision model confirms the radiator page (<code>service-bulletin.pdf</code> p. 1) for the reference <code>AF-P-1042</code>, which it does not contain. The harness exists to surface exactly this kind of regression.</div>
+    <p>Evaluation exits non-zero when any scenario fails, so it drops straight into CI. Write your own ground-truth file in the same shape: <code>queries[]</code> with <code>relevant</code> and <code>must_not_confirm</code> PDF/page pairs.</p>
+  </div>
+</section>
+
+<section id="extend">
+  <div class="wrap">
+    <div class="station">Station 04 · The workshop</div>
+    <h2>Swap any machine on the line</h2>
+    <p>The application layer never imports an adapter. It talks to four protocols in <code>src/pagelens/ports.py</code>, so you can replace any station without touching business rules.</p>
+    <div class="scroll"><table>
+      <tr><th>Port</th><th>Today</th><th>Ideas</th></tr>
+      <tr><td><code>PdfRegionExtractor</code></td><td>PyMuPDF tiles</td><td>Layout-aware figure and table detection</td></tr>
+      <tr><td><code>MultimodalEmbedder</code></td><td>Ollama <code>/api/embed</code></td><td>OpenCLIP, SigLIP, a hosted API</td></tr>
+      <tr><td><code>RegionStore</code></td><td>SQLite, brute-force cosine</td><td>Qdrant, sqlite-vec, pgvector</td></tr>
+      <tr><td><code>CandidateVerifier</code></td><td>Ollama Qwen3-VL</td><td>Another VLM, a few-shot prompt, a second opinion pass</td></tr>
+    </table></div>
+
+    <h3>Recipe 1 · A new embedder</h3>
+    <p>Satisfy the protocol: a <code>model_id</code>, and two methods returning L2-normalised <code>float32</code> arrays of shape <code>(n, dim)</code>. Text and image vectors must share a space.</p>
+    <div class="codebox"><div class="bar"><span>src/pagelens/adapters/embedding_myclip.py</span><button type="button">Copy</button></div>
+<pre><span class="k">from</span> collections.abc <span class="k">import</span> Sequence
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> pagelens.domain.models <span class="k">import</span> FloatArray
+
+
+<span class="k">class</span> MyClipEmbedder:
+    model_id = <span class="s">"my-clip-v1"</span>   <span class="c"># stored with the index; changing it means re-ingesting</span>
+
+    <span class="k">def</span> embed_texts(self, texts: Sequence[str]) -&gt; FloatArray:
+        vectors = self._encode_text(list(texts))
+        <span class="k">return</span> _unit(vectors)
+
+    <span class="k">def</span> embed_images(self, images: Sequence[Path]) -&gt; FloatArray:
+        vectors = self._encode_images([p.read_bytes() <span class="k">for</span> p <span class="k">in</span> images])
+        <span class="k">return</span> _unit(vectors)
+
+
+<span class="k">def</span> _unit(v: FloatArray) -&gt; FloatArray:
+    norms = np.linalg.norm(v, axis=1, keepdims=True)
+    <span class="k">return</span> (v / np.maximum(norms, <span class="o">1e-12</span>)).astype(np.float32)</pre></div>
+    <p>Then use it in <code>cli.py</code> where <code>OllamaMultimodalEmbedder(...)</code> is built. Import heavy model packages lazily inside the class, not at module import time.</p>
+
+    <h3>Recipe 2 · A new store</h3>
+    <p>Implement <code>initialize</code>, <code>replace_document</code> (atomic: delete the old version, insert the new), <code>search</code> (return <code>SearchResult</code>s sorted by fused score) and <code>stats</code>. Keep the rule that only vectors from the active <code>embedding_model</code> are searched.</p>
+
+    <h3>Recipe 3 · A new check in the ground truth</h3>
+    <div class="codebox"><div class="bar"><span>testdata/ground-truth.json</span><button type="button">Copy</button></div>
+<pre>{
+  <span class="s">"id"</span>: <span class="s">"fuel-pump-visual"</span>,
+  <span class="s">"text"</span>: <span class="s">"fuel pump"</span>,
+  <span class="s">"evidence"</span>: <span class="s">"visual"</span>,
+  <span class="s">"relevant"</span>: [[<span class="s">"pump-catalog.pdf"</span>, 3]],
+  <span class="s">"must_not_confirm"</span>: [[<span class="s">"pump-catalog.pdf"</span>, 2]]
+}</pre></div>
+    <p>Run <code>pagelens evaluate testdata/ground-truth.json --scenario fuel-pump-visual --verify</code>.</p>
+
+    <h3>The rules of the shop floor</h3>
+    <ul>
+      <li>Business rules live in <code>application/</code>; provider code behind protocols in <code>ports.py</code>.</li>
+      <li>Unit tests are offline and deterministic: temporary PDFs, fake embedders, no Ollama.</li>
+      <li>Python 3.11+, full type annotations (<code>mypy --strict</code>), Ruff formats everything.</li>
+      <li>User-visible changes update <code>CHANGELOG.md</code>; requirement changes update <code>openspec/</code>.</li>
+      <li>Never commit customer PDFs, weights, previews or indexes. The fictional <code>testdata/</code> PDFs are the only exception.</li>
+    </ul>
+    <div class="codebox"><div class="bar"><span>Quality gate</span><button type="button">Copy</button></div>
+<pre>nix run path:.#quality     <span class="c"># Ruff, mypy --strict, pytest + coverage, pinned toolchain</span>
+make quality               <span class="c"># same, inside `nix develop path:.` or a uv venv</span></pre></div>
+  </div>
+</section>
+
+<section id="nix">
+  <div class="wrap">
+    <div class="station">Bonus station · The toolbox</div>
+    <h2>How Nix builds and runs it</h2>
+    <p>Nix is optional, but it gives every user and every CI machine the exact same toolchain. Think of it as a factory that builds each part from a fully specified recipe, files the result by the hash of its inputs, and never mixes parts from different batches.</p>
+
+    <h3>Reading <code>nix run path:. -- query …</code></h3>
+    <div class="scroll"><table>
+      <tr><th>Piece</th><th>Meaning</th></tr>
+      <tr><td><code>nix run</code></td><td>Build a program from a flake and execute it. Nothing is installed globally; results live in <code>/nix/store</code> and are cached.</td></tr>
+      <tr><td><code>path:.</code></td><td>The flake reference: the current folder, read as plain files. Without <code>path:</code> Nix assumes a git repository and ignores untracked files.</td></tr>
+      <tr><td><code>--</code></td><td>Everything before it is for Nix, everything after goes to Pagelens. Without it, <code>--verify</code> is read as a Nix option and fails.</td></tr>
+      <tr><td><code>#quality</code></td><td>Optional. Picks a named app instead of the default, for example <code>nix run path:.#quality</code>.</td></tr>
+    </table></div>
+
+    <h3>What gets built</h3>
+    <p><code>packages.default</code> (<code>nix/modules/package.nix</code>) uses <code>buildPythonApplication</code>. It produces a store path whose <code>bin/pagelens</code> is a wrapper that points at a pinned Python 3.12 and exact store paths for numpy, pymupdf, typer and the rest. Each dependency is its own hashed directory; nothing touches your system Python.</p>
+    <p><code>lib.getExe</code> turns that package into the path of its main executable, using <code>meta.mainProgram</code>. In <code>nix/modules/apps.nix</code>, <code>default.program = lib.getExe config.packages.default</code> is what <code>nix run path:.</code> executes.</p>
+    <div class="codebox"><div class="bar"><span>nix/modules/apps.nix (excerpt)</span><button type="button">Copy</button></div>
+<pre>apps = {
+  default = {
+    type = <span class="s">"app"</span>;
+    program = lib.getExe config.packages.default;   <span class="c"># …/bin/pagelens</span>
+  };
+  quality = pythonApp <span class="s">"pagelens-quality"</span> <span class="s">"scripts/quality.py"</span> <span class="s">"Run all quality checks"</span>;
+};</pre></div>
+    <div class="note"><strong>Two flavours of Python.</strong> The <em>installable app</em> contains Pagelens itself. The <em>quality</em> app and dev shell use <code>pagelensPython</code>, an interpreter with libraries plus pytest and mypy, and add your working tree through <code>PYTHONPATH</code>, so tests always run your current edits.</div>
+
+    <h3>A dendritic flake</h3>
+    <p><code>flake.nix</code> is only a few lines. It hands the folder <code>nix/modules/</code> to <code>import-tree</code>, which loads every file as a <a href="https://flake.parts">flake-parts</a> module. Add a capability by dropping in a file; nothing needs registering.</p>
+    <div class="scroll"><table>
+      <tr><th>Module</th><th>Job</th></tr>
+      <tr><td><code>systems.nix</code></td><td>Supported platforms: x86_64-linux, aarch64-linux, aarch64-darwin.</td></tr>
+      <tr><td><code>nixpkgs.nix</code></td><td>Imports the pinned package set for each system.</td></tr>
+      <tr><td><code>project.nix</code></td><td>Declares the shared <code>pagelens.devShell.buildInputs</code> option other modules append to.</td></tr>
+      <tr><td><code>python.nix</code></td><td>Builds <code>pagelensPython</code> and contributes it to the dev shell.</td></tr>
+      <tr><td><code>package.nix</code></td><td>The installable <code>pagelens</code> package.</td></tr>
+      <tr><td><code>apps.nix</code></td><td>Defines <code>nix run</code> targets: default and <code>quality</code>.</td></tr>
+      <tr><td><code>hooks.nix</code></td><td>Pre-commit: Ruff, nixfmt, statix, deadnix. Also sets the formatter.</td></tr>
+      <tr><td><code>devshell.nix</code></td><td>Assembles <code>nix develop</code>: Python, Ollama, Tesseract, uv, jq, sqlite.</td></tr>
+    </table></div>
+
+    <h3>Command cheat sheet</h3>
+    <div class="scroll"><table>
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>nix run path:. -- &lt;args&gt;</code></td><td>Build and run Pagelens once.</td></tr>
+      <tr><td><code>nix shell path:.</code></td><td>Subshell with <code>pagelens</code> on <code>PATH</code>. No <code>--</code> needed.</td></tr>
+      <tr><td><code>nix develop path:.</code></td><td>Dev shell for working on the code.</td></tr>
+      <tr><td><code>nix run path:.#quality</code></td><td>Lint, types and tests.</td></tr>
+      <tr><td><code>nix flake check path:.</code></td><td>Formatting, static analysis and package build.</td></tr>
+      <tr><td><code>nix fmt path:.</code></td><td>Format the Nix files.</td></tr>
+    </table></div>
+    <div class="note"><strong>What Nix does not bundle.</strong> Ollama and its models run as a separate server that Pagelens talks to over HTTP. Tesseract is part of the dev shell and the quality app, but not of the installed app's wrapper, so OCR in <code>nix run path:. -- ingest</code> needs Tesseract on your own <code>PATH</code>. Visual retrieval works without it.</div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="wrap">
+    <div class="station">Station 05 · Known limits and roadmap</div>
+    <h2>Honest about the edges</h2>
+    <div class="scroll"><table>
+      <tr><th>Area</th><th>Limit</th></tr>
+      <tr><td>Verification</td><td>With <code>--evidence any</code> the vision model can confirm a page that does not contain the requested reference. Treat <code>confirmed</code> as strong evidence, not proof.</td></tr>
+      <tr><td>Scale</td><td>Brute-force search over all vectors in SQLite. Good for thousands of pages, not millions.</td></tr>
+      <tr><td>Ranking</td><td>Cosine plus a small lexical boost. Not calibrated probabilities.</td></tr>
+      <tr><td>Small objects</td><td>Things much smaller than a tile can be diluted. Try a smaller tile size and re-ingest.</td></tr>
+      <tr><td>Identity</td><td>Look-alike products can score high. Similarity is not identity.</td></tr>
+      <tr><td>Operations</td><td>Single user, single writer, no auth, no service API.</td></tr>
+    </table></div>
+    <h3>Roadmap</h3>
+    <ol>
+      <li>Approximate nearest neighbours behind <code>RegionStore</code> (Qdrant or sqlite-vec).</li>
+      <li>Incremental ingestion that skips unchanged files by content hash.</li>
+      <li>Stronger verification: few-shot prompts and a second opinion for text evidence.</li>
+      <li>Layout-aware regions for figures and tables.</li>
+      <li>A local viewer that highlights the bounding box on the page.</li>
+      <li>Learned reranking, then an authenticated HTTP service mode.</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<div class="hazard" aria-hidden="true"></div>
+<footer>
+  <div class="wrap">
+    <div><strong>Pagelens</strong> · MIT licence · Pre-1.0, expect changes between minor versions.</div>
+    <div>Documentation lives in the repository's <code>docs/</code> folder; requirements in <code>openspec/</code>.</div>
+  </div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

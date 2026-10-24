@@ -16,6 +16,12 @@ project follows Semantic Versioning.
 
 ### Added
 
+- Project governance: `CONTRIBUTING.md` (workflow, Conventional Commits, scopes), code of
+  conduct, `SUPPORT.md`, `NOTICE.md`, `ROADMAP.md`, `docs/EVOLVING.md`, decision records in
+  `docs/adr/`, issue and pull-request templates, `CODEOWNERS`, Dependabot, CodeQL.
+- Release automation with release-please (version bump and changelog from Conventional
+  Commits; wheel and sdist attached to the GitHub release) and a PR title check.
+- Static project website in `site/` with a GitHub Pages deployment workflow.
 - `--help` text shows `nix run path:. -- ...` usage (the `--` is required).
 - `python -m pagelens` entry point, `scripts/demo.sh` / `make demo`, CI workflow,
   `CONTRIBUTING.md`, and `SECURITY.md`.

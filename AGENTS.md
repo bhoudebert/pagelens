@@ -25,6 +25,21 @@ Target Python 3.11+, use four spaces and complete type annotations, and let Ruff
 
 Use pytest and name tests after observable behavior, for example `test_query_combines_text_and_each_reference_image`. Unit tests must be deterministic and offline: use temporary PDFs and fake embedders instead of downloading weights or calling Ollama. Cover provenance, re-ingestion, multimodal fusion, and failure behavior when changing retrieval logic.
 
+## Way of working
+
+Every change follows [`docs/EVOLVING.md`](docs/EVOLVING.md): idea, ADR when the shape of the
+system changes (`docs/adr/`), spec first (`openspec/specs/`), code with tests, evaluation on
+`testdata/ground-truth.json` for retrieval changes, docs, pull request.
+
 ## Commit & Pull Request Guidelines
 
-Use short, imperative commit subjects (for example, `Add image similarity scoring`) and keep each commit focused. Update `CHANGELOG.md` for user-visible behavior and OpenSpec for requirement changes. Pull requests should explain the problem and solution, list verification commands, link related issues, and include representative CLI output. Never commit customer PDFs, model weights, generated previews, indexes, or secrets; the fictional fixtures under `testdata/` are the explicit PDF exception.
+Commits and PR titles follow Conventional Commits (`feat`, `fix`, `perf`, `refactor`, `docs`,
+`test`, `build`, `ci`, `chore`, `style`, `revert`; optional kebab-case scope; header up to 100
+characters; imperative subject). Pull requests are squash-merged, so the title is the commit on
+`main`; release-please builds versions and `CHANGELOG.md` from them, so do not edit released
+changelog sections or version numbers by hand. Full rules: `CONTRIBUTING.md`.
+
+Keep each commit focused. Update OpenSpec for requirement changes and add an ADR for architectural
+decisions. Pull requests explain the problem and solution, list verification commands, link related
+issues, and include representative CLI output. Never commit customer PDFs, model weights, generated
+previews, indexes, or secrets; the fictional fixtures under `testdata/` are the explicit PDF exception.
