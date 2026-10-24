@@ -16,7 +16,9 @@ Open to anyone; no API key needed for most (see [`CONTRIBUTING.md`](CONTRIBUTING
 ## Next
 
 1. **Approximate nearest neighbours** behind `RegionStore` (Qdrant or sqlite-vec), so query
-   time stops growing linearly with the collection.
+   time stops growing linearly with the collection. The plan for very large corpora
+   (quantization, metadata filters, staged queries, sharding) is in
+   [`docs/scaling.md`](docs/scaling.md) and [ADR 0008](docs/adr/0008-scale-by-shrinking-the-index-then-replacing-the-store.md).
 2. **Incremental ingestion**: skip unchanged files by content hash; background re-index.
 3. **Stronger verification**: few-shot prompts, a calibration set, a second-opinion pass
    for `--evidence any`.
