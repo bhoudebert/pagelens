@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pagelens"
-version = "0.1.0"
+version = "0.2.0"
 description = "Find which page of which PDF shows an object — local multimodal retrieval with grounded evidence"
 readme = "README.md"
 keywords = ["rag", "multimodal", "pdf", "image-search", "ollama", "retrieval"]

@@ -3,6 +3,25 @@
 All notable changes are documented here. The format follows Keep a Changelog and the
 project follows Semantic Versioning.
 
+## [0.2.0](https://github.com/bhoudebert/pagelens/compare/v0.1.0...v0.2.0) (2026-10-24)
+
+
+### Features
+
+* **init:** add first version ([e3d5593](https://github.com/bhoudebert/pagelens/commit/e3d5593a5dbfcbc4f16eed515ecc13ef3b9e7698))
+
+
+### Documentation
+
+* add project site, contributor workflow and release automation ([#1](https://github.com/bhoudebert/pagelens/issues/1)) ([e2df6dd](https://github.com/bhoudebert/pagelens/commit/e2df6ddca90215cef28470ca6172f0d3ee6deef5))
+* describe how to scale beyond SQLite ([#14](https://github.com/bhoudebert/pagelens/issues/14)) ([c257db7](https://github.com/bhoudebert/pagelens/commit/c257db74b1aad521aa36854a02bbec16a1a16473))
+* **preview:** add social preview and doc ([#11](https://github.com/bhoudebert/pagelens/issues/11)) ([e8eb7cf](https://github.com/bhoudebert/pagelens/commit/e8eb7cf67a4da9f24480481d7fb509891f9a1e61))
+
+
+### Build and tooling
+
+* **deps:** update GitHub Actions and Python dependency ranges ([#13](https://github.com/bhoudebert/pagelens/issues/13)) ([b9a6e2b](https://github.com/bhoudebert/pagelens/commit/b9a6e2b904dcb5a8fc342259fde4e4e2fd33a075))
+
 ## [Unreleased]
 
 ### Changed
@@ -36,4 +55,3 @@ project follows Semantic Versioning.
   rejected-result filtering.
 - Visual-only and text-or-visual verification policies plus page-level ground-truth
   evaluation from the CLI.
-
