@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pagelens"
+version = "0.1.0"
+description = "Find which page of which PDF shows an object — local multimodal retrieval with grounded evidence"
+readme = "README.md"
+keywords = ["rag", "multimodal", "pdf", "image-search", "ollama", "retrieval"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Image Recognition",
+  "Typing :: Typed",
+]
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+authors = [{ name = "bhoudebert", email = "bhoudebert@gmail.com" }]
+dependencies = [
+  "numpy>=2.1,<3",
+  "pillow>=11,<13",
+  "pydantic>=2.10,<3",
+  "pymupdf>=1.25,<2",
+  "rich>=13.9,<16",
+  "typer>=0.15,<1",
+]
+
+[project.scripts]
+pagelens = "pagelens.cli:app"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.9,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pagelens"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["pagelens"]
+mypy_path = "src"
+

@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "documents": {
+    "pump-catalog.pdf": {
+      "pages": {
+        "2": ["water_pump", "centrifugal_pump", "wp_450"],
+        "3": ["fuel_pump", "hard_negative_water_pump"],
+        "4": ["air_compressor", "hard_negative_water_pump"]
+      }
+    },
+    "service-bulletin.pdf": {
+      "pages": {
+        "1": ["radiator", "vector_drawing", "hard_negative_water_pump", "no_literal_pump_text"],
+        "2": ["water_pump", "text_only", "wp_450"]
+      }
+    },
+    "vehicle-catalog.pdf": {
+      "pages": {
+        "1": ["motorcycle", "hx_750", "no_literal_motorcycle_text"],
+        "2": ["water_pump", "small_object", "no_literal_pump_text"]
+      }
+    },
+    "image-only-scan.pdf": {
+      "pages": {
+        "1": ["water_pump", "image_only", "no_searchable_text"]
+      }
+    }
+  },
+  "queries": [
+    {
+      "id": "water-pumps-visual",
+      "text": "water pump",
+      "evidence": "visual",
+      "relevant": [
+        ["pump-catalog.pdf", 2],
+        ["vehicle-catalog.pdf", 2],
+        ["image-only-scan.pdf", 1]
+      ],
+      "must_not_confirm": [
+        ["pump-catalog.pdf", 3],
+        ["pump-catalog.pdf", 4],
+        ["service-bulletin.pdf", 1],
+        ["service-bulletin.pdf", 2]
+      ]
+    },
+    {
+      "id": "water-pumps-any-evidence",
+      "text": "water pump",
+      "evidence": "any",
+      "relevant": [
+        ["pump-catalog.pdf", 2],
+        ["service-bulletin.pdf", 2],
+        ["vehicle-catalog.pdf", 2],
+        ["image-only-scan.pdf", 1]
+      ],
+      "must_not_confirm": [
+        ["pump-catalog.pdf", 3],
+        ["pump-catalog.pdf", 4],
+        ["service-bulletin.pdf", 1]
+      ]
+    },
+    {
+      "id": "pump-visual-broad",
+      "text": "pump",
+      "evidence": "visual",
+      "relevant": [
+        ["pump-catalog.pdf", 2],
+        ["pump-catalog.pdf", 3],
+        ["vehicle-catalog.pdf", 2],
+        ["image-only-scan.pdf", 1]
+      ],
+      "must_not_confirm": [
+        ["pump-catalog.pdf", 4],
+        ["service-bulletin.pdf", 1],
+        ["service-bulletin.pdf", 2]
+      ]
+    },
+    {
+      "id": "exact-reference",
+      "text": "AF-P-1042",
+      "evidence": "any",
+      "relevant": [
+        ["pump-catalog.pdf", 2],
+        ["service-bulletin.pdf", 2]
+      ],
+      "must_not_confirm": [["service-bulletin.pdf", 1]]
+    },
+    {
+      "id": "motorcycle-visual",
+      "text": "red naked street motorcycle",
+      "evidence": "visual",
+      "relevant": [["vehicle-catalog.pdf", 1]],
+      "must_not_confirm": [
+        ["vehicle-catalog.pdf", 2],
+        ["pump-catalog.pdf", 2]
+      ]
+    },
+    {
+      "id": "compressor",
+      "text": "industrial air compressor",
+      "evidence": "visual",
+      "relevant": [["pump-catalog.pdf", 4]],
+      "must_not_confirm": [["pump-catalog.pdf", 2]]
+    }
+  ]
+}
+
