@@ -23,9 +23,9 @@ license = "MIT"
 authors = [{ name = "bhoudebert", email = "bhoudebert@gmail.com" }]
 dependencies = [
   "numpy>=2.1,<3",
-  "pillow>=11,<13",
+  "pillow>=11,<14",
   "pydantic>=2.10,<3",
-  "pymupdf>=1.25,<2",
+  "pymupdf>=1.25,<3",
   "rich>=13.9,<16",
   "typer>=0.15,<1",
 ]
@@ -35,7 +35,7 @@ pagelens = "pagelens.cli:app"
 
 [dependency-groups]
 dev = [
-  "mypy>=1.14,<2",
+  "mypy>=1.14,<3",
   "pytest>=8.3,<10",
   "pytest-cov>=6,<8",
   "ruff>=0.9,<1",
