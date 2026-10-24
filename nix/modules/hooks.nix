@@ -6,6 +6,7 @@
     { pkgs, ... }:
     {
       pre-commit.settings.hooks = {
+        commitizen.enable = true;
         deadnix.enable = true;
         nixfmt.enable = true;
         ruff.enable = true;
