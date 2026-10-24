@@ -12,3 +12,4 @@ after acceptance; a later record supersedes it. See [`../EVOLVING.md`](../EVOLVI
 | [0005](0005-verification-is-opt-in-and-evidence-aware.md) | Verification is opt-in and applies an evidence policy |
 | [0006](0006-ground-truth-evaluation.md) | Evaluate against page-level ground truth |
 | [0007](0007-conventional-commits-and-automated-releases.md) | Conventional Commits, squash merges, automated releases |
+| [0008](0008-scale-by-shrinking-the-index-then-replacing-the-store.md) | Scale by shrinking the index, then replacing the store |

@@ -8,7 +8,7 @@ current boundaries.
 | Area | Limitation | Mitigation today |
 | --- | --- | --- |
 | Verification | With `--evidence any`, the vision model can confirm a page that does not contain the requested reference. On the bundled corpus, `exact-reference` confirms `service-bulletin.pdf` p. 1 (a radiator drawing) when verifying 20 candidates. | Treat `confirmed` as strong evidence, not proof; use `--evidence visual` where possible; the `evaluate --verify` harness exposes regressions. |
-| Scale | Search is brute-force over all vectors in SQLite; every query loads all regions. Suitable for thousands of pages, not millions. | Ports allow a vector-database adapter (see roadmap). |
+| Scale | Search is brute-force over all vectors in SQLite; every query loads all regions. Suitable for thousands of pages, not millions. | Ports allow a vector-database adapter; see [scaling beyond SQLite](scaling.md). |
 | Ranking | Scores are cosine similarity plus a small lexical boost. They are not calibrated probabilities. | Verification, thresholds chosen per collection. |
 | Small objects | Objects far smaller than a tile can be diluted in the embedding. | Smaller `PAGELENS_TILE_SIZE`, then re-ingest. |
 | Exact identity | Look-alike products can score highly; similarity is not identity. | Use verification metadata and part-number text search. |

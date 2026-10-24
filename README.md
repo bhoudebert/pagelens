@@ -131,6 +131,7 @@ harness.
 | Every command and option, and how to launch them (pip, Nix) | [`docs/cli-reference.md`](docs/cli-reference.md) |
 | Design and boundaries | [`docs/architecture.md`](docs/architecture.md) |
 | Model choices and privacy | [`docs/model-selection.md`](docs/model-selection.md) |
+| Scaling to millions of manuals | [`docs/scaling.md`](docs/scaling.md) |
 | Known limits | [`docs/limitations-and-roadmap.md`](docs/limitations-and-roadmap.md) |
 | Roadmap and help wanted | [`ROADMAP.md`](ROADMAP.md) |
 | How changes are made (idea → release) | [`docs/EVOLVING.md`](docs/EVOLVING.md) |
